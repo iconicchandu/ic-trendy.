@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Search, Loader2, TrendingUp, Star } from "lucide-react"
+import { Search, Loader2, TrendingUp, Star, Copy, Hash, Sparkles } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -37,14 +37,14 @@ interface TitleScore {
 }
 
 const categories = [
-  { id: "all", name: "All Categories", categoryId: "0" },
+  { id: "all", name: "All", categoryId: "0" },
   { id: "gaming", name: "Gaming", categoryId: "20" },
   { id: "music", name: "Music", categoryId: "10" },
   { id: "sports", name: "Sports", categoryId: "17" },
   { id: "entertainment", name: "Entertainment", categoryId: "24" },
   { id: "education", name: "Education", categoryId: "27" },
-  { id: "tech", name: "Science & Technology", categoryId: "28" },
-  { id: "news", name: "News & Politics", categoryId: "25" },
+  { id: "tech", name: "Tech", categoryId: "28" },
+  { id: "news", name: "News", categoryId: "25" },
 ]
 
 export function YouTubeAnalyzer() {
@@ -82,7 +82,7 @@ export function YouTubeAnalyzer() {
       const data = await response.json()
       setTitleAnalysis(data)
       toast({
-        title: "Title Analysis Complete",
+        title: "Analysis Complete! 🎉",
         description: `Found ${data.relatedTitles.length} related titles and ${data.hashtags.length} trending hashtags`,
       })
     } catch (error) {
@@ -126,7 +126,7 @@ export function YouTubeAnalyzer() {
         })
       } else {
         toast({
-          title: "Title Scored Successfully",
+          title: "Title Scored Successfully! ⭐",
           description: `Your title scored ${data.overall}/100 with ${data.improvements.length} improvement suggestions`,
         })
       }
@@ -145,7 +145,7 @@ export function YouTubeAnalyzer() {
     try {
       await navigator.clipboard.writeText(text)
       toast({
-        title: "Copied!",
+        title: "Copied! 📋",
         description: `${type} copied to clipboard`,
       })
     } catch (error) {
@@ -213,128 +213,153 @@ export function YouTubeAnalyzer() {
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-8">
-      {/* Header */}
-      <div className="text-center space-y-4">
-        <div className="flex justify-center mb-4">
-          <img
-            src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/IC%20Trendy-XCuvSySQewPUSPScRicKdOHS44eFMd.png"
-            alt="IC Trendy Logo"
-            className="h-12 w-auto"
-          />
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
+      <div className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex flex-col items-center space-y-3">
+            <img
+              src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/IC%20Trendy-XCuvSySQewPUSPScRicKdOHS44eFMd.png"
+              alt="IC Trendy Logo"
+              className="h-8 w-auto sm:h-10"
+            />
+            <div className="text-center">
+              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight">YouTube Content Analyzer</h1>
+              <p className="text-sm sm:text-base text-muted-foreground mt-1">
+                Analyze titles • Get trending hashtags • Score your content
+              </p>
+            </div>
+          </div>
         </div>
-        <h1 className="text-4xl font-bold tracking-tight">YouTube Content Analyzer</h1>
-        <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-          Analyze your video titles to get trending related titles and viral hashtags
-        </p>
       </div>
 
-      {/* Title Analysis Section */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Title Trend Analysis</CardTitle>
-          <CardDescription>Analyze your video title to get trending related titles and viral hashtags</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex gap-4 mb-6 custome">
-            <Input
-              placeholder="Enter your YouTube video title (e.g., 'BGMI Best Tips and Tricks 2024')"
-              value={titleInput}
-              onChange={(e) => setTitleInput(e.target.value)}
-              onKeyPress={(e) => e.key === "Enter" && analyzeTitleTrends()}
-              className="flex-1"
-            />
-            <Button onClick={analyzeTitleTrends} disabled={analyzingTitle}>
-              {analyzingTitle ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Search className="h-4 w-4 mr-2" />}
-              Analyze Title
-            </Button>
-            <Button onClick={scoreTitleWithAI} disabled={scoringTitle} variant="outline">
-              {scoringTitle ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Star className="h-4 w-4 mr-2" />}
-              Score Title
-            </Button>
-          </div>
-
-          {titleScore && (
-            <div className="mb-6">
-              <Card className="border-2">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <TrendingUp className="h-5 w-5" />
-                    Title Score Analysis
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-6">
-                    {/* Overall Score */}
-                    <div className="text-center">
-                      <div className={`text-4xl font-bold ${getScoreColor(titleScore.overall)}`}>
-                        {titleScore.overall}/100
-                      </div>
-                      <div className="text-lg font-medium text-muted-foreground">
-                        {getScoreLabel(titleScore.overall)}
-                      </div>
-                      <Progress value={titleScore.overall} className="mt-2 h-3" />
-                    </div>
-
-                    {/* Score Breakdown */}
-                    <div>
-                      <h4 className="font-semibold mb-3">Score Breakdown</h4>
-                      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-                        {Object.entries(titleScore.breakdown).map(([category, score]) => (
-                          <div key={category} className="text-center">
-                            <div className="text-2xl font-bold text-primary">{score}</div>
-                            <div className="text-sm text-muted-foreground capitalize">{category}</div>
-                            <Progress value={score} className="mt-1 h-2" />
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Strengths */}
-                    {titleScore.strengths.length > 0 && (
-                      <div>
-                        <h4 className="font-semibold mb-3 text-green-600">✅ Strengths</h4>
-                        <div className="space-y-2">
-                          {titleScore.strengths.map((strength, index) => (
-                            <div
-                              key={index}
-                              className="p-3 bg-green-50 dark:bg-green-950 rounded-lg border-l-4 border-green-500"
-                            >
-                              <p className="text-sm">{strength}</p>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Improvements */}
-                    {titleScore.improvements.length > 0 && (
-                      <div>
-                        <h4 className="font-semibold mb-3 text-orange-600">🚀 AI-Powered Improvement Suggestions</h4>
-                        <div className="space-y-2">
-                          {titleScore.improvements.map((improvement, index) => (
-                            <div
-                              key={index}
-                              className="p-3 bg-orange-50 dark:bg-orange-950 rounded-lg border-l-4 border-orange-500"
-                            >
-                              <p className="text-sm">{improvement}</p>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
+      <div className="container mx-auto px-4 py-6 space-y-6 max-w-4xl">
+        <Card className="shadow-lg border-0 bg-card/50 backdrop-blur-sm">
+          <CardHeader className="pb-4">
+            <CardTitle className="text-lg sm:text-xl flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-primary" />
+              Title Analysis
+            </CardTitle>
+            <CardDescription className="text-sm">
+              Enter your video title to get trending suggestions and viral hashtags
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-3">
+              <Input
+                placeholder="Enter your YouTube video title..."
+                value={titleInput}
+                onChange={(e) => setTitleInput(e.target.value)}
+                onKeyPress={(e) => e.key === "Enter" && analyzeTitleTrends()}
+                className="h-12 text-base"
+              />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <Button
+                  onClick={analyzeTitleTrends}
+                  disabled={analyzingTitle}
+                  className="h-12 text-base font-medium"
+                  size="lg"
+                >
+                  {analyzingTitle ? (
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  ) : (
+                    <Search className="h-4 w-4 mr-2" />
+                  )}
+                  Analyze Title
+                </Button>
+                <Button
+                  onClick={scoreTitleWithAI}
+                  disabled={scoringTitle}
+                  variant="outline"
+                  className="h-12 text-base font-medium bg-transparent"
+                  size="lg"
+                >
+                  {scoringTitle ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Star className="h-4 w-4 mr-2" />}
+                  Score Title
+                </Button>
+              </div>
             </div>
-          )}
+          </CardContent>
+        </Card>
 
-          {/* India Trending Searches section */}
-          <div className="mb-6">
-            <h4 className="font-semibold mb-3 text-lg">🇮🇳 Top 10 Trending Searches in India</h4>
+        {titleScore && (
+          <Card className="shadow-lg border-0 bg-gradient-to-br from-primary/5 to-primary/10">
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+                <TrendingUp className="h-5 w-5 text-primary" />
+                Title Score Analysis
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="text-center space-y-3">
+                <div className={`text-5xl sm:text-6xl font-bold ${getScoreColor(titleScore.overall)}`}>
+                  {titleScore.overall}
+                  <span className="text-2xl sm:text-3xl text-muted-foreground">/100</span>
+                </div>
+                <div className="text-lg sm:text-xl font-medium text-muted-foreground">
+                  {getScoreLabel(titleScore.overall)}
+                </div>
+                <Progress value={titleScore.overall} className="h-3 sm:h-4" />
+              </div>
 
-            {/* Category Filters for India */}
-            <div className="flex flex-wrap gap-2 mb-4">
+              <div className="space-y-3">
+                <h4 className="font-semibold text-base sm:text-lg">Score Breakdown</h4>
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+                  {Object.entries(titleScore.breakdown).map(([category, score]) => (
+                    <div key={category} className="text-center p-3 bg-background/50 rounded-lg">
+                      <div className="text-xl sm:text-2xl font-bold text-primary">{score}</div>
+                      <div className="text-xs sm:text-sm text-muted-foreground capitalize">{category}</div>
+                      <Progress value={score} className="mt-2 h-2" />
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {titleScore.strengths.length > 0 && (
+                <div className="space-y-3">
+                  <h4 className="font-semibold text-base sm:text-lg text-green-600 flex items-center gap-2">
+                    ✅ Strengths
+                  </h4>
+                  <div className="space-y-2">
+                    {titleScore.strengths.map((strength, index) => (
+                      <div
+                        key={index}
+                        className="p-3 sm:p-4 bg-green-50 dark:bg-green-950 rounded-lg border-l-4 border-green-500"
+                      >
+                        <p className="text-sm sm:text-base">{strength}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {titleScore.improvements.length > 0 && (
+                <div className="space-y-3">
+                  <h4 className="font-semibold text-base sm:text-lg text-orange-600 flex items-center gap-2">
+                    🚀 AI Suggestions
+                  </h4>
+                  <div className="space-y-2">
+                    {titleScore.improvements.map((improvement, index) => (
+                      <div
+                        key={index}
+                        className="p-3 sm:p-4 bg-orange-50 dark:bg-orange-950 rounded-lg border-l-4 border-orange-500"
+                      >
+                        <p className="text-sm sm:text-base">{improvement}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
+        <Card className="shadow-lg border-0 bg-card/50 backdrop-blur-sm">
+          <CardHeader className="pb-4">
+            <CardTitle className="text-lg sm:text-xl flex items-center gap-2">🇮🇳 Top Trending in India</CardTitle>
+            <CardDescription className="text-sm">Discover what's trending in different categories</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex flex-wrap gap-2">
               {categories.map((category) => (
                 <Button
                   key={category.id}
@@ -342,30 +367,30 @@ export function YouTubeAnalyzer() {
                   size="sm"
                   onClick={() => handleIndiaCategoryChange(category.id)}
                   disabled={loadingIndiaTrending}
+                  className="h-9 px-3 text-sm font-medium"
                 >
                   {category.name}
                 </Button>
               ))}
             </div>
 
-            {/* India Trending Keywords */}
             {loadingIndiaTrending ? (
-              <div className="flex items-center justify-center py-4">
-                <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                Loading India trending searches...
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="h-6 w-6 animate-spin mr-2" />
+                <span className="text-sm">Loading trending searches...</span>
               </div>
             ) : (
               <div className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {indiaTrendingSearches.map((trend, index) => (
                     <Button
                       key={index}
                       variant="ghost"
-                      className="h-auto p-3 text-left justify-start border border-dashed hover:border-solid hover:bg-primary/5"
+                      className="h-auto p-4 text-left justify-start border border-dashed hover:border-solid hover:bg-primary/5 transition-all duration-200"
                       onClick={() => handleIndiaTrendingClick(trend.keyword)}
                     >
-                      <div className="space-y-1">
-                        <div className="font-medium text-sm">{trend.keyword}</div>
+                      <div className="space-y-1 w-full">
+                        <div className="font-medium text-sm sm:text-base">{trend.keyword}</div>
                         <div className="text-xs text-muted-foreground">
                           {trend.searchVolume.toLocaleString()} searches
                         </div>
@@ -374,18 +399,18 @@ export function YouTubeAnalyzer() {
                   ))}
                 </div>
 
-                {/* Trending Hashtags for Selected Category */}
                 {indiaTrendingHashtags.length > 0 && selectedIndiaCategory !== "all" && (
-                  <div className="mt-4">
-                    <h5 className="font-medium mb-2 text-sm">
-                      📈 Trending Hashtags for {categories.find((c) => c.id === selectedIndiaCategory)?.name}
+                  <div className="space-y-3 p-4 bg-muted/30 rounded-lg">
+                    <h5 className="font-medium text-sm sm:text-base flex items-center gap-2">
+                      <Hash className="h-4 w-4" />
+                      Trending Hashtags for {categories.find((c) => c.id === selectedIndiaCategory)?.name}
                     </h5>
                     <div className="flex flex-wrap gap-2">
                       {indiaTrendingHashtags.map((hashtag, index) => (
                         <Badge
                           key={index}
                           variant="secondary"
-                          className="cursor-pointer hover:bg-primary hover:text-primary-foreground transition-colors"
+                          className="cursor-pointer hover:bg-primary hover:text-primary-foreground transition-colors h-8 px-3 text-sm"
                           onClick={() => copyToClipboard(hashtag, "Hashtag")}
                         >
                           {hashtag}
@@ -395,48 +420,60 @@ export function YouTubeAnalyzer() {
                     <Button
                       size="sm"
                       variant="outline"
-                      className="mt-2 bg-transparent"
+                      className="h-9 bg-transparent"
                       onClick={() => copyToClipboard(indiaTrendingHashtags.join(" "), "All trending hashtags")}
                     >
-                      Copy All Hashtags
+                      <Copy className="h-4 w-4 mr-2" />
+                      Copy All
                     </Button>
                   </div>
                 )}
               </div>
             )}
-          </div>
+          </CardContent>
+        </Card>
 
-          {titleAnalysis && (
-            <div className="space-y-6">
-              {/* Related Trending Titles */}
-              <div>
-                <h4 className="font-semibold mb-3 text-lg">🔥 Top Trending Related Titles</h4>
-                <div className="grid gap-3">
+        {titleAnalysis && (
+          <div className="space-y-6">
+            {/* Related Titles */}
+            <Card className="shadow-lg border-0 bg-card/50 backdrop-blur-sm">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-lg sm:text-xl flex items-center gap-2">🔥 Trending Related Titles</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
                   {titleAnalysis.relatedTitles.map((title, index) => (
-                    <div key={index} className="flex items-center justify-between p-3 bg-muted rounded-lg">
-                      <span className="text-sm font-medium flex-1">{title}</span>
+                    <div key={index} className="flex items-start gap-3 p-3 sm:p-4 bg-muted/30 rounded-lg">
+                      <span className="text-sm sm:text-base font-medium flex-1 leading-relaxed">{title}</span>
                       <Button
                         size="sm"
                         variant="outline"
                         onClick={() => copyToClipboard(title, "Title")}
-                        className="ml-2"
+                        className="shrink-0 h-8 w-8 p-0"
                       >
-                        Copy
+                        <Copy className="h-3 w-3" />
                       </Button>
                     </div>
                   ))}
                 </div>
-              </div>
+              </CardContent>
+            </Card>
 
-              {/* Trending Hashtags */}
-              <div>
-                <h4 className="font-semibold mb-3 text-lg">📈 Viral Hashtags</h4>
-                <div className="flex flex-wrap gap-2 mb-3">
+            {/* Viral Hashtags */}
+            <Card className="shadow-lg border-0 bg-card/50 backdrop-blur-sm">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-lg sm:text-xl flex items-center gap-2">
+                  <Hash className="h-5 w-5" />
+                  Viral Hashtags
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex flex-wrap gap-2">
                   {titleAnalysis.hashtags.map((hashtag, index) => (
                     <Badge
                       key={index}
                       variant="secondary"
-                      className="cursor-pointer hover:bg-primary hover:text-primary-foreground transition-colors"
+                      className="cursor-pointer hover:bg-primary hover:text-primary-foreground transition-colors h-8 px-3 text-sm"
                       onClick={() => copyToClipboard(hashtag, "Hashtag")}
                     >
                       {hashtag}
@@ -447,31 +484,39 @@ export function YouTubeAnalyzer() {
                   size="sm"
                   variant="outline"
                   onClick={() => copyToClipboard(titleAnalysis.hashtags.join(" "), "All hashtags")}
+                  className="h-9"
                 >
+                  <Copy className="h-4 w-4 mr-2" />
                   Copy All Hashtags
                 </Button>
-              </div>
+              </CardContent>
+            </Card>
 
-              {/* Additional Suggestions */}
-              {titleAnalysis.suggestions.length > 0 && (
-                <div>
-                  <h4 className="font-semibold mb-3 text-lg">💡 Optimization Suggestions</h4>
-                  <div className="space-y-2">
+            {/* Optimization Suggestions */}
+            {titleAnalysis.suggestions.length > 0 && (
+              <Card className="shadow-lg border-0 bg-gradient-to-br from-blue-50/50 to-blue-100/50 dark:from-blue-950/20 dark:to-blue-900/20">
+                <CardHeader className="pb-4">
+                  <CardTitle className="text-lg sm:text-xl flex items-center gap-2">💡 Optimization Tips</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
                     {titleAnalysis.suggestions.map((suggestion, index) => (
                       <div
                         key={index}
-                        className="p-3 bg-blue-50 dark:bg-blue-950 rounded-lg border-l-4 border-blue-500"
+                        className="p-3 sm:p-4 bg-blue-50 dark:bg-blue-950 rounded-lg border-l-4 border-blue-500"
                       >
-                        <p className="text-sm">{suggestion}</p>
+                        <p className="text-sm sm:text-base leading-relaxed">{suggestion}</p>
                       </div>
                     ))}
                   </div>
-                </div>
-              )}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        )}
+
+        <div className="h-6"></div>
+      </div>
     </div>
   )
 }
