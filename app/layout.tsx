@@ -7,7 +7,7 @@ import "./globals.css"
 export const metadata: Metadata = {
   title: "YouTube Content Analyzer",
   description: "Analyze YouTube keywords and generate AI-powered content",
-  generator: "v0.app",
+  generator: "IC Trendy",
 }
 
 export default function RootLayout({
