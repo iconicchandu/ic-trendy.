@@ -236,7 +236,7 @@ export function YouTubeAnalyzer() {
           <CardDescription>Analyze your video title to get trending related titles and viral hashtags</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex gap-4 mb-6">
+          <div className="flex gap-4 mb-6 custome">
             <Input
               placeholder="Enter your YouTube video title (e.g., 'BGMI Best Tips and Tricks 2024')"
               value={titleInput}
