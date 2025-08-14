@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Search, Loader2, TrendingUp, Star, Copy, Hash, Sparkles } from "lucide-react"
+import { Search, Loader2, TrendingUp, Star, Copy, Hash, Sparkles, RefreshCw } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -57,6 +57,8 @@ export function YouTubeAnalyzer() {
   const [loadingIndiaTrending, setLoadingIndiaTrending] = useState(false)
   const [selectedIndiaCategory, setSelectedIndiaCategory] = useState("all")
   const [indiaTrendingHashtags, setIndiaTrendingHashtags] = useState<string[]>([])
+  const [rewrittenTitles, setRewrittenTitles] = useState<string[]>([])
+  const [rewritingTitles, setRewritingTitles] = useState(false)
   const { toast } = useToast()
 
   useEffect(() => {
@@ -81,6 +83,7 @@ export function YouTubeAnalyzer() {
 
       const data = await response.json()
       setTitleAnalysis(data)
+      setRewrittenTitles([])
       toast({
         title: "Analysis Complete! 🎉",
         description: `Found ${data.relatedTitles.length} related titles and ${data.hashtags.length} trending hashtags`,
@@ -93,6 +96,58 @@ export function YouTubeAnalyzer() {
       })
     } finally {
       setAnalyzingTitle(false)
+    }
+  }
+
+  const rewriteTitles = async () => {
+    if (!titleInput.trim()) {
+      toast({
+        title: "Error",
+        description: "Please enter a title first",
+        variant: "destructive",
+      })
+      return
+    }
+
+    setRewritingTitles(true)
+    try {
+      const response = await fetch("/api/youtube/rewrite-titles", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: titleInput }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        if (errorData.type === "rate_limit") {
+          throw new Error("Rate limit exceeded. Please wait a moment before trying again.")
+        }
+        throw new Error(errorData.error || "Failed to rewrite titles")
+      }
+
+      const data = await response.json()
+      setRewrittenTitles(data.rewrittenTitles)
+
+      if (data.fallbackUsed) {
+        toast({
+          title: "Titles Rewritten (Basic Mode)",
+          description: data.message || "Generated using basic patterns",
+        })
+      } else {
+        toast({
+          title: "Titles Rewritten! ✨",
+          description: `Generated ${data.rewrittenTitles.length} new viral title variations using trending context`,
+        })
+      }
+    } catch (error) {
+      console.error("Rewrite error:", error)
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to rewrite titles. Please try again.",
+        variant: "destructive",
+      })
+    } finally {
+      setRewritingTitles(false)
     }
   }
 
@@ -353,6 +408,103 @@ export function YouTubeAnalyzer() {
           </Card>
         )}
 
+        {titleAnalysis && (
+          <div className="space-y-6">
+            <Card className="shadow-lg border-0 bg-card/50 backdrop-blur-sm">
+              <CardHeader className="pb-4">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-lg sm:text-xl flex items-center gap-2">
+                    🔥 Trending Related Titles
+                  </CardTitle>
+                  <Button
+                    onClick={rewriteTitles}
+                    disabled={rewritingTitles}
+                    variant="outline"
+                    size="sm"
+                    className="h-9 bg-transparent"
+                  >
+                    {rewritingTitles ? (
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                    ) : (
+                      <RefreshCw className="h-4 w-4 mr-2" />
+                    )}
+                    Rewrite
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {(rewrittenTitles.length > 0 ? rewrittenTitles : titleAnalysis.relatedTitles).map((title, index) => (
+                    <div key={index} className="flex items-start gap-3 p-3 sm:p-4 bg-muted/30 rounded-lg">
+                      <span className="text-sm sm:text-base font-medium flex-1 leading-relaxed">{title}</span>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => copyToClipboard(title, "Title")}
+                        className="shrink-0 h-8 w-8 p-0"
+                      >
+                        <Copy className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="shadow-lg border-0 bg-card/50 backdrop-blur-sm">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-lg sm:text-xl flex items-center gap-2">
+                  <Hash className="h-5 w-5" />
+                  Viral Hashtags
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex flex-wrap gap-2">
+                  {titleAnalysis.hashtags.map((hashtag, index) => (
+                    <Badge
+                      key={index}
+                      variant="secondary"
+                      className="cursor-pointer hover:bg-primary hover:text-primary-foreground transition-colors h-8 px-3 text-sm"
+                      onClick={() => copyToClipboard(hashtag, "Hashtag")}
+                    >
+                      {hashtag}
+                    </Badge>
+                  ))}
+                </div>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => copyToClipboard(titleAnalysis.hashtags.join(" "), "All hashtags")}
+                  className="h-9"
+                >
+                  <Copy className="h-4 w-4 mr-2" />
+                  Copy All Hashtags
+                </Button>
+              </CardContent>
+            </Card>
+
+            {titleAnalysis.suggestions.length > 0 && (
+              <Card className="shadow-lg border-0 bg-gradient-to-br from-blue-50/50 to-blue-100/50 dark:from-blue-950/20 dark:to-blue-900/20">
+                <CardHeader className="pb-4">
+                  <CardTitle className="text-lg sm:text-xl flex items-center gap-2">💡 Optimization Tips</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {titleAnalysis.suggestions.map((suggestion, index) => (
+                      <div
+                        key={index}
+                        className="p-3 sm:p-4 bg-blue-50 dark:bg-blue-950 rounded-lg border-l-4 border-blue-500"
+                      >
+                        <p className="text-sm sm:text-base leading-relaxed">{suggestion}</p>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        )}
+
         <Card className="shadow-lg border-0 bg-card/50 backdrop-blur-sm">
           <CardHeader className="pb-4">
             <CardTitle className="text-lg sm:text-xl flex items-center gap-2">🇮🇳 Top Trending in India</CardTitle>
@@ -432,88 +584,6 @@ export function YouTubeAnalyzer() {
             )}
           </CardContent>
         </Card>
-
-        {titleAnalysis && (
-          <div className="space-y-6">
-            {/* Related Titles */}
-            <Card className="shadow-lg border-0 bg-card/50 backdrop-blur-sm">
-              <CardHeader className="pb-4">
-                <CardTitle className="text-lg sm:text-xl flex items-center gap-2">🔥 Trending Related Titles</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {titleAnalysis.relatedTitles.map((title, index) => (
-                    <div key={index} className="flex items-start gap-3 p-3 sm:p-4 bg-muted/30 rounded-lg">
-                      <span className="text-sm sm:text-base font-medium flex-1 leading-relaxed">{title}</span>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => copyToClipboard(title, "Title")}
-                        className="shrink-0 h-8 w-8 p-0"
-                      >
-                        <Copy className="h-3 w-3" />
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Viral Hashtags */}
-            <Card className="shadow-lg border-0 bg-card/50 backdrop-blur-sm">
-              <CardHeader className="pb-4">
-                <CardTitle className="text-lg sm:text-xl flex items-center gap-2">
-                  <Hash className="h-5 w-5" />
-                  Viral Hashtags
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex flex-wrap gap-2">
-                  {titleAnalysis.hashtags.map((hashtag, index) => (
-                    <Badge
-                      key={index}
-                      variant="secondary"
-                      className="cursor-pointer hover:bg-primary hover:text-primary-foreground transition-colors h-8 px-3 text-sm"
-                      onClick={() => copyToClipboard(hashtag, "Hashtag")}
-                    >
-                      {hashtag}
-                    </Badge>
-                  ))}
-                </div>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => copyToClipboard(titleAnalysis.hashtags.join(" "), "All hashtags")}
-                  className="h-9"
-                >
-                  <Copy className="h-4 w-4 mr-2" />
-                  Copy All Hashtags
-                </Button>
-              </CardContent>
-            </Card>
-
-            {/* Optimization Suggestions */}
-            {titleAnalysis.suggestions.length > 0 && (
-              <Card className="shadow-lg border-0 bg-gradient-to-br from-blue-50/50 to-blue-100/50 dark:from-blue-950/20 dark:to-blue-900/20">
-                <CardHeader className="pb-4">
-                  <CardTitle className="text-lg sm:text-xl flex items-center gap-2">💡 Optimization Tips</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    {titleAnalysis.suggestions.map((suggestion, index) => (
-                      <div
-                        key={index}
-                        className="p-3 sm:p-4 bg-blue-50 dark:bg-blue-950 rounded-lg border-l-4 border-blue-500"
-                      >
-                        <p className="text-sm sm:text-base leading-relaxed">{suggestion}</p>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-          </div>
-        )}
 
         <div className="h-6"></div>
       </div>
